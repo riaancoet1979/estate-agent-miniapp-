@@ -1,720 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estate Agent Mini App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f9fafb;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding-bottom: 80px;
-        }
-        .progress-bar {
-            background: white;
-            padding: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-        .progress-step {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #9ca3af;
-        }
-        .progress-step.active {
-            color: #2563eb;
-        }
-        .progress-track {
-            width: 100%;
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 999px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: #2563eb;
-            transition: width 0.3s;
-        }
-        .content {
-            padding: 24px;
-        }
-        .form-section h2 {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        .form-section p {
-            color: #6b7280;
-            font-size: 14px;
-            margin-bottom: 24px;
-        }
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: #374151;
-            margin-bottom: 4px;
-        }
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 10px 16px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: inherit;
-        }
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-        .form-textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
-        .form-grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-        .checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #374151;
-        }
-        .checkbox-input {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        .debug-bar {
-            background: #fef3c7;
-            border-bottom: 2px solid #fbbf24;
-            padding: 16px;
-        }
-        .debug-bar p {
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        .debug-button {
-            background: #2563eb;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        .debug-button:hover {
-            background: #1d4ed8;
-        }
-        .review-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-        .review-card h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .review-item {
-            font-size: 14px;
-            margin-bottom: 8px;
-            color: #374151;
-        }
-        .review-item strong {
-            color: #1f2937;
-        }
-        .review-price {
-            font-size: 18px;
-            font-weight: bold;
-            color: #2563eb;
-            margin: 12px 0;
-        }
-        .review-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-top: 12px;
-        }
-        .review-stat-label {
-            font-size: 12px;
-            color: #6b7280;
-        }
-        .review-stat-value {
-            font-weight: 500;
-            color: #1f2937;
-        }
-        .room-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .room-tag {
-            font-size: 12px;
-            background: #dbeafe;
-            color: #1e40af;
-            padding: 4px 12px;
-            border-radius: 12px;
-        }
-        .alert-box {
-            background: #dbeafe;
-            border: 1px solid #93c5fd;
-            border-radius: 8px;
-            padding: 16px;
-            margin-top: 16px;
-        }
-        .alert-box p {
-            font-size: 14px;
-            color: #1e40af;
-        }
-        .success-screen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f0fdf4;
-            padding: 24px;
-        }
-        .success-content {
-            text-align: center;
-        }
-        .success-icon {
-            width: 64px;
-            height: 64px;
-            margin: 0 auto 16px;
-        }
-        .success-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #1f2937;
-            margin-bottom: 8px;
-        }
-        .success-text {
-            color: #6b7280;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div id="app"></div>
+import telebot
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import json
+from datetime import datetime
+import os
 
-    <script>
-        let tg = window.Telegram?.WebApp;
-        let currentStep = 'client';
-        let submitted = false;
+# Replace with your bot token from BotFather
+BOT_TOKEN = "8446187652:AAGrbhECI6XGUcNwQU0ulYM-DTjWo9AFvUo"
+bot = telebot.TeleBot(BOT_TOKEN)
 
-        const clientData = {
-            fullName: '',
-            email: '',
-            phone: '',
-            preferredContactMethod: '',
-            additionalNotes: ''
-        };
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "Welcome! Use the menu button to open the Property Listing form.")
 
-        const listingData = {
-            propertyAddress: '',
-            propertyType: '',
-            bedrooms: '',
-            bathrooms: '',
-            garages: '',
-            squareFeet: '',
-            askingPrice: '',
-            erfSize: '',
-            yearBuilt: '',
-            features: '',
-            description: '',
-            showingDate: '',
-            showingTime: '',
-            additionalRooms: {
-                study: false,
-                entertainmentRoom: false,
-                scullery: false,
-                pantry: false,
-                laundry: false,
-                guestToilet: false,
-                balcony: false,
-                patio: false,
-                guestRoom: false,
-                domesticQuarters: false,
-                gym: false,
-                office: false
-            }
-        };
+@bot.message_handler(content_types=['web_app_data'])
+def handle_web_app_data(message):
+    try:
+        # Parse the JSON data from mini app
+        data = json.loads(message.web_app_data.data)
+        
+        # Create Word document
+        doc = Document()
+        
+        # Title
+        title = doc.add_heading('PROPERTY LISTING REPORT', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Timestamp
+        timestamp_para = doc.add_paragraph()
+        timestamp_run = timestamp_para.add_run(f"Generated: {datetime.now().strftime('%d %B %Y at %H:%M')}")
+        timestamp_run.italic = True
+        timestamp_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        doc.add_paragraph()
+        doc.add_paragraph('_' * 70)
+        doc.add_paragraph()
+        
+        # SELLER SECTION
+        doc.add_heading('SELLER INFORMATION', level=1)
+        
+        seller_table = doc.add_table(rows=5, cols=2)
+        seller_table.style = 'Light Grid Accent 1'
+        
+        client = data['client']
+        seller_data = [
+            ('Full Name', client.get('fullName', 'N/A')),
+            ('Email', client.get('email') or 'Not provided'),
+            ('Phone Number', client.get('phone', 'N/A')),
+            ('Preferred Contact', client.get('preferredContactMethod') or 'Not specified'),
+            ('Notes', client.get('additionalNotes') or 'None')
+        ]
+        
+        for i, (label, value) in enumerate(seller_data):
+            row = seller_table.rows[i]
+            row.cells[0].text = label
+            row.cells[0].paragraphs[0].runs[0].font.bold = True
+            row.cells[1].text = str(value)
+        
+        doc.add_paragraph()
+        doc.add_paragraph('_' * 70)
+        doc.add_paragraph()
+        
+        # PROPERTY SECTION
+        doc.add_heading('PROPERTY DETAILS', level=1)
+        
+        listing = data['listing']
+        
+        # Address
+        address_para = doc.add_paragraph()
+        address_run = address_para.add_run(f"📍 {listing.get('propertyAddress', 'N/A')}")
+        address_run.font.size = Pt(14)
+        address_run.font.bold = True
+        
+        # Property Type
+        doc.add_paragraph(f"Property Type: {listing.get('propertyType', 'N/A')}")
+        
+        # ASKING PRICE - prominent
+        price_para = doc.add_paragraph()
+        price_run = price_para.add_run(f"ASKING PRICE: {listing.get('askingPrice', 'N/A')}")
+        price_run.bold = True
+        price_run.font.size = Pt(18)
+        price_run.font.color.rgb = RGBColor(0, 112, 192)
+        
+        doc.add_paragraph()
+        
+        # Property Specifications Table
+        doc.add_heading('Specifications', level=2)
+        spec_table = doc.add_table(rows=6, cols=2)
+        spec_table.style = 'Light Grid Accent 1'
+        
+        specs = [
+            ('Bedrooms', listing.get('bedrooms', 'N/A')),
+            ('Bathrooms', listing.get('bathrooms', 'N/A')),
+            ('Garages', listing.get('garages', 'N/A') or 'None'),
+            ('Floor Area', f"{listing.get('squareFeet', 'N/A')} m²" if listing.get('squareFeet') else 'N/A'),
+            ('Erf Size', f"{listing.get('erfSize', 'N/A')} m²" if listing.get('erfSize') else 'N/A'),
+            ('Year Built', listing.get('yearBuilt', 'N/A') or 'N/A')
+        ]
+        
+        for i, (label, value) in enumerate(specs):
+            row = spec_table.rows[i]
+            row.cells[0].text = label
+            row.cells[0].paragraphs[0].runs[0].font.bold = True
+            row.cells[1].text = str(value)
+        
+        doc.add_paragraph()
+        
+        # Additional Rooms
+        additional_rooms = listing.get('additionalRooms', [])
+        if additional_rooms and len(additional_rooms) > 0:
+            doc.add_heading('Additional Rooms', level=2)
+            rooms_text = ', '.join([room.replace('_', ' ').replace('Room', ' Room').title() for room in additional_rooms])
+            doc.add_paragraph(rooms_text)
+            doc.add_paragraph()
+        
+        # Key Features
+        if listing.get('features'):
+            doc.add_heading('Key Features', level=2)
+            doc.add_paragraph(listing['features'])
+            doc.add_paragraph()
+        
+        # Description
+        if listing.get('description'):
+            doc.add_heading('Property Description', level=2)
+            doc.add_paragraph(listing['description'])
+            doc.add_paragraph()
+        
+        # Viewing Information
+        if listing.get('showingDate'):
+            doc.add_heading('Viewing Information', level=2)
+            viewing_para = doc.add_paragraph()
+            viewing_para.add_run(f"📅 Date: {listing['showingDate']}")
+            if listing.get('showingTime'):
+                doc.add_paragraph(f"🕐 Time: {listing['showingTime']}")
+            doc.add_paragraph()
+        
+        # Footer
+        doc.add_paragraph()
+        doc.add_paragraph('_' * 70)
+        footer_para = doc.add_paragraph()
+        footer_run = footer_para.add_run(f"\nSubmitted by: {data['agentInfo'].get('first_name', 'Agent')} {data['agentInfo'].get('last_name', '')}")
+        footer_run.italic = True
+        footer_run.font.size = Pt(9)
+        
+        timestamp_footer = doc.add_paragraph()
+        timestamp_footer_run = timestamp_footer.add_run(f"Submission Time: {data.get('timestamp', 'N/A')}")
+        timestamp_footer_run.italic = True
+        timestamp_footer_run.font.size = Pt(9)
+        
+        # Save document
+        safe_name = client.get('fullName', 'Unknown').replace(' ', '_')
+        filename = f"listing_{safe_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        doc.save(filename)
+        
+        # Send document to agent
+        with open(filename, 'rb') as doc_file:
+            bot.send_document(
+                message.chat.id, 
+                doc_file,
+                caption=f"✅ Property listing report generated!\n\n📋 Property: {listing.get('propertyAddress', 'N/A')}\n👤 Seller: {client.get('fullName', 'N/A')}"
+            )
+        
+        # Delete local file after sending
+        os.remove(filename)
+        
+        # Confirmation message
+        bot.send_message(
+            message.chat.id,
+            "✅ Listing successfully processed and document generated!",
+            parse_mode='Markdown'
+        )
+        
+    except Exception as e:
+        bot.reply_to(message, f"❌ Error processing listing: {str(e)}")
+        print(f"Error: {e}")
 
-        function init() {
-            if (tg) {
-                tg.ready();
-                tg.expand();
-                tg.MainButton.setText('Next: Property Details');
-                tg.MainButton.show();
-                tg.MainButton.onClick(handleMainButtonClick);
-                
-                if (tg.themeParams.bg_color) {
-                    document.body.style.backgroundColor = tg.themeParams.bg_color;
-                }
-            }
-            
-            render();
-            attachEventListeners();
-        }
-
-        function validateClientData() {
-            return clientData.fullName && clientData.phone;
-        }
-
-        function validateListingData() {
-            return listingData.propertyAddress && listingData.propertyType && 
-                   listingData.askingPrice && listingData.bedrooms && listingData.bathrooms;
-        }
-
-        function handleMainButtonClick() {
-            if (currentStep === 'client') {
-                if (validateClientData()) {
-                    currentStep = 'listing';
-                    if (tg) {
-                        tg.MainButton.setText('Review Submission');
-                        tg.HapticFeedback?.impactOccurred('light');
-                    }
-                    render();
-                    attachEventListeners();
-                } else {
-                    const msg = 'Please fill in all required seller fields (Name and Phone)';
-                    if (tg) {
-                        tg.showAlert(msg);
-                        tg.HapticFeedback?.notificationOccurred('error');
-                    } else {
-                        alert(msg);
-                    }
-                }
-            } else if (currentStep === 'listing') {
-                if (validateListingData()) {
-                    currentStep = 'review';
-                    if (tg) {
-                        tg.MainButton.setText('Submit to AI Agent');
-                        tg.HapticFeedback?.impactOccurred('light');
-                    }
-                    render();
-                } else {
-                    const msg = 'Please fill in all required property fields (Address, Type, Bedrooms, Bathrooms, Price)';
-                    if (tg) {
-                        tg.showAlert(msg);
-                        tg.HapticFeedback?.notificationOccurred('error');
-                    } else {
-                        alert(msg);
-                    }
-                }
-            } else if (currentStep === 'review') {
-                submitToAI();
-            }
-        }
-
-        function submitToAI() {
-            const submissionData = {
-                client: clientData,
-                listing: {
-                    ...listingData,
-                    additionalRooms: Object.entries(listingData.additionalRooms)
-                        .filter(([_, checked]) => checked)
-                        .map(([room, _]) => room)
-                },
-                agentInfo: tg?.initDataUnsafe?.user || {},
-                timestamp: new Date().toISOString()
-            };
-
-            console.log('Submitting to AI:', submissionData);
-            
-            if (tg) {
-                tg.sendData(JSON.stringify(submissionData));
-                tg.HapticFeedback?.notificationOccurred('success');
-                tg.MainButton.hide();
-            }
-            
-            submitted = true;
-            render();
-            
-            setTimeout(() => {
-                if (tg) tg.close();
-            }, 2000);
-        }
-
-        function attachEventListeners() {
-            // Client form listeners
-            const clientInputs = ['fullName', 'email', 'phone', 'preferredContactMethod', 'additionalNotes'];
-            clientInputs.forEach(field => {
-                const el = document.getElementById(field);
-                if (el) {
-                    el.addEventListener('input', (e) => {
-                        clientData[field] = e.target.value;
-                    });
-                }
-            });
-
-            // Listing form listeners
-            const listingInputs = ['propertyAddress', 'propertyType', 'bedrooms', 'bathrooms', 'garages', 
-                                  'squareFeet', 'askingPrice', 'erfSize', 'yearBuilt', 'features', 
-                                  'description', 'showingDate', 'showingTime'];
-            listingInputs.forEach(field => {
-                const el = document.getElementById(field);
-                if (el) {
-                    el.addEventListener('input', (e) => {
-                        listingData[field] = e.target.value;
-                    });
-                }
-            });
-
-            // Checkbox listeners
-            Object.keys(listingData.additionalRooms).forEach(room => {
-                const el = document.getElementById(room);
-                if (el) {
-                    el.addEventListener('change', (e) => {
-                        listingData.additionalRooms[room] = e.target.checked;
-                    });
-                }
-            });
-
-            // Debug button
-            const debugBtn = document.getElementById('debugButton');
-            if (debugBtn) {
-                debugBtn.addEventListener('click', handleMainButtonClick);
-            }
-        }
-
-        function render() {
-            const app = document.getElementById('app');
-            
-            if (submitted) {
-                app.innerHTML = `
-                    <div class="success-screen">
-                        <div class="success-content">
-                            <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            <h2 class="success-title">Listing Submitted!</h2>
-                            <p class="success-text">New listing sent to AI agent successfully</p>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            const progressWidth = currentStep === 'client' ? '33%' : currentStep === 'listing' ? '66%' : '100%';
-            
-            app.innerHTML = `
-                <div class="container">
-                    ${!tg ? `
-                        <div class="debug-bar">
-                            <p>⚠️ Testing Mode (not in Telegram)</p>
-                            <button id="debugButton" class="debug-button">
-                                ${currentStep === 'client' ? 'Next: Property Details' : 
-                                  currentStep === 'listing' ? 'Review Submission' : 'Submit to AI Agent'}
-                            </button>
-                        </div>
-                    ` : ''}
-                    
-                    <div class="progress-bar">
-                        <div class="progress-steps">
-                            <div class="progress-step ${currentStep === 'client' ? 'active' : ''}">
-                                <span>👤</span>
-                                <span>Seller</span>
-                            </div>
-                            <div class="progress-step ${currentStep === 'listing' ? 'active' : ''}">
-                                <span>🏠</span>
-                                <span>Property</span>
-                            </div>
-                            <div class="progress-step ${currentStep === 'review' ? 'active' : ''}">
-                                <span>📤</span>
-                                <span>Review</span>
-                            </div>
-                        </div>
-                        <div class="progress-track">
-                            <div class="progress-fill" style="width: ${progressWidth}"></div>
-                        </div>
-                    </div>
-
-                    <div class="content">
-                        ${currentStep === 'client' ? renderClientForm() : ''}
-                        ${currentStep === 'listing' ? renderListingForm() : ''}
-                        ${currentStep === 'review' ? renderReview() : ''}
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderClientForm() {
-            return `
-                <div class="form-section">
-                    <h2>Seller Details</h2>
-                    <p>Property owner information</p>
-
-                    <div class="form-group">
-                        <label class="form-label">Full Name *</label>
-                        <input type="text" id="fullName" class="form-input" placeholder="John Smith" value="${clientData.fullName}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Email</label>
-                        <input type="email" id="email" class="form-input" placeholder="john@example.com" value="${clientData.email}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Phone Number *</label>
-                        <input type="tel" id="phone" class="form-input" placeholder="+27 82 123 4567" value="${clientData.phone}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Preferred Contact Method</label>
-                        <select id="preferredContactMethod" class="form-select">
-                            <option value="">Select method</option>
-                            <option value="Phone" ${clientData.preferredContactMethod === 'Phone' ? 'selected' : ''}>Phone</option>
-                            <option value="Email" ${clientData.preferredContactMethod === 'Email' ? 'selected' : ''}>Email</option>
-                            <option value="WhatsApp" ${clientData.preferredContactMethod === 'WhatsApp' ? 'selected' : ''}>WhatsApp</option>
-                            <option value="SMS" ${clientData.preferredContactMethod === 'SMS' ? 'selected' : ''}>SMS</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Additional Notes</label>
-                        <textarea id="additionalNotes" class="form-textarea" placeholder="Any special requirements...">${clientData.additionalNotes}</textarea>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderListingForm() {
-            return `
-                <div class="form-section">
-                    <h2>Property Details</h2>
-                    <p>Complete information about the listing</p>
-
-                    <div class="form-group">
-                        <label class="form-label">Property Address *</label>
-                        <input type="text" id="propertyAddress" class="form-input" placeholder="123 Main Street, Suburb, City" value="${listingData.propertyAddress}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Property Type *</label>
-                        <select id="propertyType" class="form-select">
-                            <option value="">Select type</option>
-                            <option value="House" ${listingData.propertyType === 'House' ? 'selected' : ''}>House</option>
-                            <option value="Apartment" ${listingData.propertyType === 'Apartment' ? 'selected' : ''}>Apartment</option>
-                            <option value="Townhouse" ${listingData.propertyType === 'Townhouse' ? 'selected' : ''}>Townhouse</option>
-                            <option value="Flat" ${listingData.propertyType === 'Flat' ? 'selected' : ''}>Flat</option>
-                            <option value="Farm" ${listingData.propertyType === 'Farm' ? 'selected' : ''}>Farm</option>
-                            <option value="Vacant Land" ${listingData.propertyType === 'Vacant Land' ? 'selected' : ''}>Vacant Land</option>
-                            <option value="Commercial" ${listingData.propertyType === 'Commercial' ? 'selected' : ''}>Commercial</option>
-                        </select>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Bedrooms *</label>
-                            <select id="bedrooms" class="form-select">
-                                <option value="">Select</option>
-                                ${[1,2,3,4,5,'6+'].map(n => `<option value="${n}" ${listingData.bedrooms == n ? 'selected' : ''}>${n}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Bathrooms *</label>
-                            <select id="bathrooms" class="form-select">
-                                <option value="">Select</option>
-                                ${['1','1.5','2','2.5','3','3.5','4+'].map(n => `<option value="${n}" ${listingData.bathrooms == n ? 'selected' : ''}>${n}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Garages</label>
-                            <select id="garages" class="form-select">
-                                <option value="">Select</option>
-                                ${['0','1','2','3','4+'].map(n => `<option value="${n}" ${listingData.garages == n ? 'selected' : ''}>${n}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Additional Rooms</label>
-                        <div class="checkbox-grid">
-                            ${Object.entries({
-                                study: 'Study',
-                                entertainmentRoom: 'Entertainment Room',
-                                scullery: 'Scullery',
-                                pantry: 'Pantry',
-                                laundry: 'Laundry',
-                                guestToilet: 'Guest Toilet',
-                                balcony: 'Balcony',
-                                patio: 'Patio',
-                                guestRoom: 'Guest Room',
-                                domesticQuarters: 'Domestic Quarters',
-                                gym: 'Gym',
-                                office: 'Home Office'
-                            }).map(([key, label]) => `
-                                <label class="checkbox-label">
-                                    <input type="checkbox" id="${key}" class="checkbox-input" ${listingData.additionalRooms[key] ? 'checked' : ''}>
-                                    <span>${label}</span>
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Asking Price *</label>
-                        <input type="text" id="askingPrice" class="form-input" placeholder="R 2,500,000" value="${listingData.askingPrice}">
-                    </div>
-
-                    <div class="form-grid-2">
-                        <div class="form-group">
-                            <label class="form-label">Floor Area (m²)</label>
-                            <input type="number" id="squareFeet" class="form-input" placeholder="250" value="${listingData.squareFeet}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Erf Size (m²)</label>
-                            <input type="number" id="erfSize" class="form-input" placeholder="800" value="${listingData.erfSize}">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Year Built</label>
-                        <input type="number" id="yearBuilt" class="form-input" placeholder="2015" value="${listingData.yearBuilt}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Key Features</label>
-                        <input type="text" id="features" class="form-input" placeholder="Pool, Solar panels, Borehole, etc." value="${listingData.features}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Property Description</label>
-                        <textarea id="description" class="form-textarea" placeholder="Describe the property...">${listingData.description}</textarea>
-                    </div>
-
-                    <div class="form-grid-2">
-                        <div class="form-group">
-                            <label class="form-label">Viewing Date</label>
-                            <input type="date" id="showingDate" class="form-input" value="${listingData.showingDate}">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Viewing Time</label>
-                            <input type="time" id="showingTime" class="form-input" value="${listingData.showingTime}">
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        function renderReview() {
-            const selectedRooms = Object.entries(listingData.additionalRooms)
-                .filter(([_, checked]) => checked)
-                .map(([room, _]) => room.replace(/([A-Z])/g, ' $1').trim());
-
-            return `
-                <div class="form-section">
-                    <h2>Review Listing</h2>
-
-                    <div class="review-card">
-                        <h3>👤 Seller Information</h3>
-                        <div class="review-item"><strong>Name:</strong> ${clientData.fullName}</div>
-                        ${clientData.email ? `<div class="review-item"><strong>Email:</strong> ${clientData.email}</div>` : ''}
-                        <div class="review-item"><strong>Phone:</strong> ${clientData.phone}</div>
-                        ${clientData.preferredContactMethod ? `<div class="review-item"><strong>Contact via:</strong> ${clientData.preferredContactMethod}</div>` : ''}
-                    </div>
-
-                    <div class="review-card">
-                        <h3>🏠 Property Information</h3>
-                        <div class="review-item"><strong>Address:</strong> ${listingData.propertyAddress}</div>
-                        <div class="review-item"><strong>Type:</strong> ${listingData.propertyType}</div>
-                        <div class="review-price">${listingData.askingPrice}</div>
-                        
-                        <div class="review-stats">
-                            <div>
-                                <div class="review-stat-label">Bedrooms</div>
-                                <div class="review-stat-value">${listingData.bedrooms}</div>
-                            </div>
-                            <div>
-                                <div class="review-stat-label">Bathrooms</div>
-                                <div class="review-stat-value">${listingData.bathrooms}</div>
-                            </div>
-                            ${listingData.garages ? `
-                            <div>
-                                <div class="review-stat-label">Garages</div>
-                                <div class="review-stat-value">${listingData.garages}</div>
-                            </div>` : ''}
-                        </div>
-
-                        ${selectedRooms.length > 0 ? `
-                            <div style="margin-top: 16px">
-                                <strong>Additional Rooms:</strong>
-                                <div class="room-tags">
-                                    ${selectedRooms.map(room => `<span class="room-tag">${room}</span>`).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        ${listingData.squareFeet ? `<div class="review-item"><strong>Floor Area:</strong> ${listingData.squareFeet}m²</div>` : ''}
-                        ${listingData.erfSize ? `<div class="review-item"><strong>Erf Size:</strong> ${listingData.erfSize}m²</div>` : ''}
-                        ${listingData.features ? `<div class="review-item"><strong>Features:</strong> ${listingData.features}</div>` : ''}
-                        ${listingData.description ? `<div class="review-item" style="margin-top: 12px"><strong>Description:</strong><br>${listingData.description}</div>` : ''}
-                    </div>
-
-                    <div class="alert-box">
-                        <p>Ready to submit this listing to your AI agent for processing</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Initialize app
-        window.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
-</html>
+if __name__ == '__main__':
+    print("Bot is running...")
+    bot.infinity_polling()
