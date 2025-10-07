@@ -360,7 +360,7 @@
             }
         }
 
-        function submitToAI() {
+        async function submitToAI() {
             const submissionData = {
                 client: clientData,
                 listing: {
@@ -370,27 +370,47 @@
                         .map(([room, _]) => room)
                 },
                 agentInfo: tg?.initDataUnsafe?.user || {},
+                chatId: tg?.initDataUnsafe?.user?.id || null,
                 timestamp: new Date().toISOString()
             };
 
             console.log('Submitting to AI:', submissionData);
             
-            // Generate formatted report text for Telegram
-            const reportText = generateReport(submissionData);
+            const webhookUrl = 'https://hook.eu2.make.com/fnd57rjstyumlcz1l01r19x0ktdwuyna';
             
-            if (tg) {
-                // Send the formatted report back to Telegram
-                tg.sendData(reportText);
-                tg.HapticFeedback?.notificationOccurred('success');
-                tg.MainButton.hide();
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(submissionData)
+                });
+                
+                if (response.ok) {
+                    console.log('Data sent successfully!');
+                    if (tg) {
+                        tg.HapticFeedback?.notificationOccurred('success');
+                        tg.MainButton.hide();
+                    }
+                    submitted = true;
+                    render();
+                    
+                    setTimeout(() => {
+                        if (tg) tg.close();
+                    }, 2000);
+                } else {
+                    throw new Error('Failed to send data');
+                }
+            } catch (error) {
+                console.error('Error sending data:', error);
+                if (tg) {
+                    tg.showAlert('Error submitting listing. Please try again.');
+                    tg.HapticFeedback?.notificationOccurred('error');
+                } else {
+                    alert('Error submitting listing. Please try again.');
+                }
             }
-            
-            submitted = true;
-            render();
-            
-            setTimeout(() => {
-                if (tg) tg.close();
-            }, 2000);
         }
 
         function generateReport(data) {
