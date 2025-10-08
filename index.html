@@ -245,6 +245,69 @@
         .hidden {
             display: none;
         }
+        .photo-upload-section {
+            margin: 24px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 2px dashed #d1d5db;
+        }
+        .photo-upload-button {
+            width: 100%;
+            padding: 16px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .photo-upload-button:hover {
+            background: #1d4ed8;
+        }
+        .photo-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .photo-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .photo-preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .photo-remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .photo-count {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -290,7 +353,8 @@
                 domesticQuarters: false,
                 gym: false,
                 office: false
-            }
+            },
+            photos: []
         };
 
         function init() {
@@ -358,6 +422,40 @@
             } else if (currentStep === 'review') {
                 submitToAI();
             }
+        }
+
+        async function handlePhotoUpload(event) {
+            const files = Array.from(event.target.files);
+            
+            for (const file of files) {
+                if (file.type.startsWith('image/')) {
+                    // Convert to base64
+                    const base64 = await fileToBase64(file);
+                    listingData.photos.push({
+                        name: file.name,
+                        data: base64,
+                        type: file.type
+                    });
+                }
+            }
+            
+            render();
+            attachEventListeners();
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removePhoto(index) {
+            listingData.photos.splice(index, 1);
+            render();
+            attachEventListeners();
         }
 
         async function submitToAI() {
@@ -537,6 +635,17 @@
                         listingData.additionalRooms[room] = e.target.checked;
                     });
                 }
+            });
+
+            // Photo upload listener
+            const photoInput = document.getElementById('photoInput');
+            if (photoInput) {
+                photoInput.addEventListener('change', handlePhotoUpload);
+            }
+
+            // Photo remove listeners
+            document.querySelectorAll('.photo-remove-btn').forEach((btn, index) => {
+                btn.addEventListener('click', () => removePhoto(index));
             });
 
             // Debug button
@@ -763,6 +872,26 @@
                             <input type="time" id="showingTime" class="form-input" value="${listingData.showingTime}">
                         </div>
                     </div>
+
+                    <div class="photo-upload-section">
+                        <label class="form-label" style="margin-bottom: 12px; display: block;">Property Photos</label>
+                        <input type="file" id="photoInput" accept="image/*" multiple style="display: none;">
+                        <button type="button" class="photo-upload-button" onclick="document.getElementById('photoInput').click()">
+                            <span>📷</span>
+                            <span>Add Photos</span>
+                        </button>
+                        ${listingData.photos.length > 0 ? `
+                            <div class="photo-count">${listingData.photos.length} photo${listingData.photos.length > 1 ? 's' : ''} selected</div>
+                            <div class="photo-preview-grid">
+                                ${listingData.photos.map((photo, index) => `
+                                    <div class="photo-preview-item">
+                                        <img src="${photo.data}" class="photo-preview-img" alt="Property photo ${index + 1}">
+                                        <button type="button" class="photo-remove-btn" data-index="${index}">×</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
             `;
         }
@@ -819,6 +948,19 @@
                         ${listingData.erfSize ? `<div class="review-item"><strong>Erf Size:</strong> ${listingData.erfSize}m²</div>` : ''}
                         ${listingData.features ? `<div class="review-item"><strong>Features:</strong> ${listingData.features}</div>` : ''}
                         ${listingData.description ? `<div class="review-item" style="margin-top: 12px"><strong>Description:</strong><br>${listingData.description}</div>` : ''}
+                        
+                        ${listingData.photos.length > 0 ? `
+                            <div style="margin-top: 16px">
+                                <strong>Photos (${listingData.photos.length}):</strong>
+                                <div class="photo-preview-grid" style="margin-top: 12px">
+                                    ${listingData.photos.map((photo, index) => `
+                                        <div class="photo-preview-item">
+                                            <img src="${photo.data}" class="photo-preview-img" alt="Property photo ${index + 1}">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="alert-box">
